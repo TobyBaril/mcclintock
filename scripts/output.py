@@ -238,7 +238,8 @@ def make_redundant_bed(insertions, sample_name, out_dir, method="popoolationte")
     properly_formed_inserts = []
     for insert in insertions:
         if insert.start <= insert.end:
-            insertion_dict[ "_".join([insert.chromosome, str(insert.start-1), str(insert.end), insert.name, "0", insert.strand])] = insert
+            new_start = 1 if insert.start < 1 else insert.start
+            insertion_dict[ "_".join([insert.chromosome, str(new_start-1), str(insert.end), insert.name, "0", insert.strand])] = insert
             properly_formed_inserts.append(insert)
         else:
             malformed_inserts.append(insert)
@@ -249,15 +250,18 @@ def make_redundant_bed(insertions, sample_name, out_dir, method="popoolationte")
         malformed_bed = out_dir+"/"+sample_name+"_"+method+"_malformed.bed"
         with open(malformed_bed,"w") as out:
             for insert in malformed_inserts:
-                out_line = "\t".join([insert.chromosome, str(insert.start-1), str(insert.end), insert.name, "0", insert.strand])
+                new_start = 1 if insert.start < 1 else insert.start
+                out_line = "\t".join([insert.chromosome, str(new_start-1), str(insert.end), insert.name, "0", insert.strand])
                 out.write(out_line+"\n")
 
     with open(tmp_bed, "w") as out:
         for insert in insertions:
-            out_line = "\t".join([insert.chromosome, str(insert.start-1), str(insert.end), insert.name, "0", insert.strand])
+            new_start = 1 if insert.start < 1 else insert.start
+            out_line = "\t".join([insert.chromosome, str(new_start-1), str(insert.end), insert.name, "0", insert.strand])
             out.write(out_line+"\n")
     
     sorted_bed = out_dir+"/sorted.bed"
+    os.system("".join(["cp ", tmp_bed, " /data/toby/zymoPopulationVariation/testEnv/temporaryOutput1.txt"]))
     command = ["bedtools", "sort", "-i", tmp_bed]
     mccutils.run_command_stdout(command, sorted_bed)
 
@@ -281,8 +285,8 @@ def make_redundant_bed(insertions, sample_name, out_dir, method="popoolationte")
                 line = "\t".join(split_line)
                 outbed.write(line)
     
-    mccutils.remove(tmp_bed)
-    mccutils.remove(sorted_bed)
+    #mccutils.remove(tmp_bed)
+    #mccutils.remove(sorted_bed)
 
     return out_inserts
 
@@ -290,7 +294,11 @@ def make_nonredundant_bed(insertions, sample_name, out_dir, method="popoolationt
     uniq_inserts = {}
 
     for insert in insertions:
-        key = "_".join([insert.chromosome, str(insert.start), str(insert.end), insert.type])
+        #new_start = 1 if insert.start < 1 else insert.start
+        #if insert.start < 1 :
+        #    print(insert.chromosome, insert.start, insert.end)
+        new_start = 1 if insert.start < 1 else insert.start
+        key = "_".join([insert.chromosome, str(new_start), str(insert.end), insert.type])
         if key not in uniq_inserts.keys():
             uniq_inserts[key] = insert
         else:
@@ -299,14 +307,16 @@ def make_nonredundant_bed(insertions, sample_name, out_dir, method="popoolationt
                 uniq_inserts[key] = insert
 
     
-    tmp_bed = out_dir+"/tmp.bed"
+    tmp_bed = out_dir+"/tmp2.bed"
     with open(tmp_bed, "w") as outbed:
         for key in uniq_inserts.keys():
             insert = uniq_inserts[key]
-            out_line = "\t".join([insert.chromosome, str(insert.start-1), str(insert.end), insert.name, "0", insert.strand])
+            new_start = 1 if insert.start < 1 else insert.start
+            out_line = "\t".join([insert.chromosome, str(new_start-1), str(insert.end), insert.name, "0", insert.strand])
             outbed.write(out_line+"\n")
     
     sorted_bed = out_dir+"/sorted.bed"
+    os.system("".join(["cp ", tmp_bed, " /data/toby/zymoPopulationVariation/testEnv/temporaryOutput2.txt"]))
     command = ["bedtools", "sort", "-i", tmp_bed]
     mccutils.run_command_stdout(command, sorted_bed)
 
